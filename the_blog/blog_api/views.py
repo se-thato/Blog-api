@@ -1,16 +1,20 @@
 from django.shortcuts import render
-from rest_framework import generics, status, filters
+from rest_framework import generics, status, filters,authentication, permissions
 from rest_framework.response import Response
-from .models import BlogPost, User
-from .serializers import BlogPostSerializer, UserSerializer
+from .models import Post, User
+from .serializers import PostSerializer, UserSerializer
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView
+from django.contrib.auth.models import User
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 
 
-class BlogPostListCreate(generics.ListCreateAPIView):
-    queryset = BlogPost.objects.all()
-    serializer_class = BlogPostSerializer
+class PostListCreate(generics.ListCreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
     #creating search feature
     filter_backends = [filters.SearchFilter]
     search_fields = ['title', 'content', 'author', 'category']
@@ -26,13 +30,13 @@ class BlogPostListCreate(generics.ListCreateAPIView):
         #serialize them
         #return json 
         if request.method == 'GET':
-            blogpost = BlogPost.objects.all()
-            serializer = BlogPostSerializer(blogpost, many=True)
+            post = Post.objects.all()
+            serializer = PostSerializer(post, many=True)
             return Response(serializer.data)
         
         
         if request.method == 'POST':
-            serializer = BlogPostSerializer(data=request.data)
+            serializer = PostSerializer(data=request.data)
             #check if the data sent is  valid
             if serializer.is_valid():
                 serializer.save()
@@ -41,36 +45,36 @@ class BlogPostListCreate(generics.ListCreateAPIView):
 
 
     @api_view(['GET', 'PUT', 'DELETE'])
-    def blogpost_detail(request, id):
+    def post_detail(request, id):
 
         try:
-            blogpost = BlogPost.objects.get(pk=id)
-        except BlogPost.DoesNotExist:
+            post = Post.objects.get(pk=id)
+        except Post.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         if request.method == 'GET':
-            serializer = BlogPostSerializer(blogpost)
+            serializer = PostSerializer(blogpost)
             return Response(serializer.data)
 
         elif request.method == 'PUT':
-            serializer = BlogPostSerializer(blogpost, data= request.data)
+            serializer = PostSerializer(post, data= request.data)
             if serializer.is_valid():
                 serializer.save
 
         elif request.method == 'DELETE':
-            blogpost.delete()
+            post.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
 
     #creating the delete button on my blogpost list create page
     def delete(self, request, *args, **kwargs):
-        BlogPost.objects.all().delete()
+        Post.objects.all().delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class BlogPostRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
-    queryset = BlogPost.objects.all()
-    serializer_class = BlogPostSerializer
+class PostRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
     lookup_field = 'pk'
 
 
@@ -91,3 +95,36 @@ class UserRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
 
 
 
+#setting up authentication
+
+class ListUsers(APIView):
+    """
+    View to list all users in the system.
+
+    * Requires token authentication.
+    * Only admin users are able to access this view.
+    """
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, format=None):
+        """
+        Return a list of all users.
+        """
+        usernames = [user.username for user in User.objects.all()]
+        return Response(usernames)
+
+
+class CustomAuthToken(ObtainAuthToken):
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user_id': user.pk,
+            'email': user.email
+        })

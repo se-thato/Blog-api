@@ -6,7 +6,7 @@ from rest_framework.authtoken.models import Token
 from django.conf import settings
 
 
-class BlogPost(models.Model):
+class Post(models.Model):
     title = models.CharField(max_length= 100)
     #author = models.CharField(max_length=100)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -33,3 +33,4 @@ class User(models.Model):
     def create_auth_token(sender, instance=None, created=False, **kwargs):
         if created:
             Token.objects.create(user=instance)
+
