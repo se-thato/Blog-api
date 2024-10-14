@@ -15,6 +15,7 @@ from rest_framework.authtoken.models import Token
 class PostListCreate(generics.ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    
     #creating search feature
     filter_backends = [filters.SearchFilter]
     search_fields = ['title', 'content', 'author', 'category']

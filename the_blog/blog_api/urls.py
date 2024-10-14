@@ -10,6 +10,6 @@ urlpatterns = [
     path('user/<int:pk>/', views.UserRetrieveUpdateDestroy.as_view(), name= 'update-user'),
     
     path('api/users/', ListUsers.as_view()),
-    path('api/token/auth/', CustomAuthToken.as_view())
+    path('api/token/auth/', CustomAuthToken.as_view()),
 ]
 
