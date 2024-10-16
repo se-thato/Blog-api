@@ -26,7 +26,7 @@ class PostListCreate(generics.ListCreateAPIView):
 
     #creating an endpoint
     @api_view(['GET', 'POST'])
-    def blogpost_list(request):
+    def post_list(request):
 
         #get all the available blogposts
         #serialize them
@@ -55,7 +55,7 @@ class PostListCreate(generics.ListCreateAPIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         if request.method == 'GET':
-            serializer = PostSerializer(blogpost)
+            serializer = PostSerializer(post)
             return Response(serializer.data)
 
         elif request.method == 'PUT':
@@ -85,8 +85,8 @@ class UserListCreate(generics.ListCreateAPIView):
     serializer_class = UserSerializer
 
     def delete(self, request, *args, **kwargs):
-        CustomUser.objects.all().delete()
-        return Response(status=status.HHTP_204_NO_CONTENT)
+        User.objects.all().delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
 
 class UserRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
