@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import generics, status, filters,authentication, permissions
+from rest_framework import generics, status,authentication, permissions
 from rest_framework.response import Response
 from .models import Post, User
 from .serializers import PostSerializer, UserSerializer
@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 
 class PostListCreate(generics.ListCreateAPIView):
@@ -17,8 +18,8 @@ class PostListCreate(generics.ListCreateAPIView):
     serializer_class = PostSerializer
     
     #creating search feature
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['title', 'content', 'author', 'category']
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['title', 'content', 'author__username', 'category']
     #creating pagination
     pagination_class = PageNumberPagination
 
